@@ -16,6 +16,9 @@ os.environ["LANGCHAIN_TRACING_V2"] = "true"
 # Create Flask app
 app = Flask(__name__)
 
+# WSGI application callable
+wsgi = app
+
 def load_file_content(file_path):
     try:
         with open(file_path, 'r') as file:
