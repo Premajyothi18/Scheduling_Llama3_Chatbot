@@ -63,7 +63,7 @@ def load_uploaded_schedules(files):
 # Define chatbot initialization
 def initialize_chatbot(schedule_content):
     # Get the Ollama API URL from environment variables or use default
-    ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
+    #ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
     # Create chatbot prompt
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -73,7 +73,7 @@ def initialize_chatbot(schedule_content):
     )
     
     # Initialize OpenAI LLM and output parser
-    llm = Ollama(model="llama3", api_url=ollama_api_url)
+    llm = Ollama(model="llama3")
     
     # Initialize output parser
     output_parser = StrOutputParser()
