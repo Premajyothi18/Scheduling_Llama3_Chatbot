@@ -11,7 +11,7 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
+ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:8000/api/generate")
     # Create chatbot prompt
 
 if not langchain_api_key:
@@ -132,4 +132,4 @@ def home():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=11434)
+    app.run(host='0.0.0.0', port=port)
