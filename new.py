@@ -74,7 +74,7 @@ def initialize_chatbot(schedule_content):
     )
     
     # Initialize OpenAI LLM and output parser
-    llm = Ollama(model="llama3", api_url=ollama_api_url)
+    llm = Ollama(model="llama3")
     
     # Initialize output parser
     output_parser = StrOutputParser()
