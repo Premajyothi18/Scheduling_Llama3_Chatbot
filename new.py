@@ -57,6 +57,8 @@ def load_uploaded_schedules(files):
 
 # Define chatbot initialization
 def initialize_chatbot(schedule_content):
+    # Get the Ollama API URL from environment variables or use default
+    ollama_api_url = os.getenv("OLLAMA_API_URL", 'http://localhost:11434/api/chat')
     # Create chatbot prompt
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -69,71 +71,3 @@ def initialize_chatbot(schedule_content):
     llm = Ollama(model="llama3")
     output_parser = StrOutputParser()
     
-    # Create chain
-    chain = prompt | llm | output_parser
-    return chain
-
-# Initialize chatbot
-#chain = initialize_chatbot()
-
-def clean_output(response):
-    # Example cleanup: remove excessive newlines, redundant words, or unwanted characters
-    response = response.replace('\n\n', '\n')  # Remove double newlines
-    response = re.sub(r'\s{2,}', ' ', response)  # Replace multiple spaces with a single space
-    response = response.replace('+', '')  # Remove all `+` symbols
-    response = response.replace('*', '')  # Remove all '*' character
-    return response
-
-def process_response(response):
-    # Clean the response first
-    cleaned_response = clean_output(response)
-    # Split the response into points based on newlines
-    points = cleaned_response.split('\n')
-    # Remove empty points and strip leading/trailing whitespace
-    points = [point.strip() for point in points if point.strip()]
-    return points
-
-# Define route for home page
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    input_text = ""
-    output = []
-    error_message = ""
-    
-    # Load preloaded schedules and other data
-    preloaded_data = load_preloaded_data()
-
-    if request.method == 'POST':
-        input_text = request.form.get('input_text', '').strip()
-        
-        # Handle multiple file uploads
-        uploaded_files = request.files.getlist('files')
-        uploaded_data = load_uploaded_schedules(uploaded_files)
-        
-        # Combine preloaded and uploaded schedules
-        combined_data = {**preloaded_data, **uploaded_data}
-        
-        # Here, you can either:
-        # 1. Use specific schedules based on user query (e.g., "week 1", "department A")
-        # 2. Or combine all relevant data
-        selected_data = []
-        if "week 1" in input_text.lower():
-            selected_data.append(combined_data.get('week_1_schedule', ''))
-        if "general schedule" in input_text.lower():
-            selected_data.append(combined_data.get('general_schedule', ''))
-        # Add more logic as needed
-
-        combined_content = "\n".join(selected_data)
-        
-        if input_text:
-            try:
-                # Initialize chatbot with the combined content
-                chain = initialize_chatbot(combined_content)
-                response = chain.invoke({'question': input_text, 'schedule_content': combined_content})
-                output = process_response(response)
-            except Exception as e:
-                error_message = f"An error occurred: {str(e)}"
-    
-    return render_template('index.html', input_text=input_text, output=output, error_message=error_message)
-if __name__ == '__main__':
-    app.run(debug=True)
