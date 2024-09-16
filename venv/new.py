@@ -57,6 +57,8 @@ def load_uploaded_schedules(files):
 
 # Define chatbot initialization
 def initialize_chatbot(schedule_content):
+    # Get the Ollama API URL from environment variables or use default
+    ollama_api_url = os.getenv("OLLAMA_API_URL", 'http://localhost:11434/api/chat')
     # Create chatbot prompt
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -67,6 +69,9 @@ def initialize_chatbot(schedule_content):
     
     # Initialize OpenAI LLM and output parser
     llm = Ollama(model="llama3")
+    output_parser = StrOutputParser()
+    
+    # Initialize output parser
     output_parser = StrOutputParser()
     
     # Create chain
@@ -106,34 +111,20 @@ def home():
     if request.method == 'POST':
         input_text = request.form.get('input_text', '').strip()
         
-        # Handle multiple file uploads
-        uploaded_files = request.files.getlist('files')
-        uploaded_data = load_uploaded_schedules(uploaded_files)
-        
-        # Combine preloaded and uploaded schedules
-        combined_data = {**preloaded_data, **uploaded_data}
-        
-        # Here, you can either:
-        # 1. Use specific schedules based on user query (e.g., "week 1", "department A")
-        # 2. Or combine all relevant data
-        selected_data = []
-        if "week 1" in input_text.lower():
-            selected_data.append(combined_data.get('week_1_schedule', ''))
-        if "general schedule" in input_text.lower():
-            selected_data.append(combined_data.get('general_schedule', ''))
-        # Add more logic as needed
-
-        combined_content = "\n".join(selected_data)
-        
         if input_text:
             try:
-                # Initialize chatbot with the combined content
-                chain = initialize_chatbot(combined_content)
-                response = chain.invoke({'question': input_text, 'schedule_content': combined_content})
+                # Initialize chatbot with some schedule content
+                schedule_content = "Your schedule content here"
+                chain = initialize_chatbot(schedule_content)
+                
+                # Generate response from the chatbot
+                response = chain.invoke({'question': input_text, 'schedule_content': schedule_content})
                 output = process_response(response)
             except Exception as e:
                 error_message = f"An error occurred: {str(e)}"
-    
+
     return render_template('index.html', input_text=input_text, output=output, error_message=error_message)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
