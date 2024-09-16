@@ -9,6 +9,11 @@ import re
 # Load environment variables from .env file
 load_dotenv()
 
+# Get the API key and handle missing environment variables
+langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
+if not langchain_api_key:
+    raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
+
 # Set environment variables for langsmith tracking
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -58,7 +63,7 @@ def load_uploaded_schedules(files):
 # Define chatbot initialization
 def initialize_chatbot(schedule_content):
     # Get the Ollama API URL from environment variables or use default
-    ollama_api_url = os.getenv("OLLAMA_API_URL", 'http://localhost:11434/api/chat')
+    ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
     # Create chatbot prompt
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -68,8 +73,7 @@ def initialize_chatbot(schedule_content):
     )
     
     # Initialize OpenAI LLM and output parser
-    llm = Ollama(model="llama3")
-    output_parser = StrOutputParser()
+    llm = Ollama(model="llama3", api_url=ollama_api_url)
     
     # Initialize output parser
     output_parser = StrOutputParser()
