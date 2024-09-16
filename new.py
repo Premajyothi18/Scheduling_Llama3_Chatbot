@@ -71,3 +71,60 @@ def initialize_chatbot(schedule_content):
     llm = Ollama(model="llama3")
     output_parser = StrOutputParser()
     
+    # Initialize output parser
+    output_parser = StrOutputParser()
+    
+    # Create chain
+    chain = prompt | llm | output_parser
+    return chain
+
+# Initialize chatbot
+#chain = initialize_chatbot()
+
+def clean_output(response):
+    # Example cleanup: remove excessive newlines, redundant words, or unwanted characters
+    response = response.replace('\n\n', '\n')  # Remove double newlines
+    response = re.sub(r'\s{2,}', ' ', response)  # Replace multiple spaces with a single space
+    response = response.replace('+', '')  # Remove all `+` symbols
+    response = response.replace('*', '')  # Remove all '*' character
+    return response
+
+def process_response(response):
+    # Clean the response first
+    cleaned_response = clean_output(response)
+    # Split the response into points based on newlines
+    points = cleaned_response.split('\n')
+    # Remove empty points and strip leading/trailing whitespace
+    points = [point.strip() for point in points if point.strip()]
+    return points
+
+# Define route for home page
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    input_text = ""
+    output = []
+    error_message = ""
+    
+    # Load preloaded schedules and other data
+    preloaded_data = load_preloaded_data()
+
+    if request.method == 'POST':
+        input_text = request.form.get('input_text', '').strip()
+        
+        if input_text:
+            try:
+                # Initialize chatbot with some schedule content
+                schedule_content = "Your schedule content here"
+                chain = initialize_chatbot(schedule_content)
+                
+                # Generate response from the chatbot
+                response = chain.invoke({'question': input_text, 'schedule_content': schedule_content})
+                output = process_response(response)
+            except Exception as e:
+                error_message = f"An error occurred: {str(e)}"
+
+    return render_template('index.html', input_text=input_text, output=output, error_message=error_message)
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
