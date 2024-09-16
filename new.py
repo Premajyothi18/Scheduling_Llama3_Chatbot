@@ -11,6 +11,9 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
+ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
+    # Create chatbot prompt
+
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
@@ -62,9 +65,7 @@ def load_uploaded_schedules(files):
 
 # Define chatbot initialization
 def initialize_chatbot(schedule_content):
-    # Get the Ollama API URL from environment variables or use default
-    ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
-    # Create chatbot prompt
+    
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a professional assistant. When the user asks for a schedule, respond with clear, concise points. Ensure each day or task is on a new line."),
@@ -73,7 +74,7 @@ def initialize_chatbot(schedule_content):
     )
     
     # Initialize OpenAI LLM and output parser
-    llm = Ollama(model="llama3")
+    llm = Ollama(model="llama3", api_url=ollama_api_url)
     
     # Initialize output parser
     output_parser = StrOutputParser()
@@ -131,4 +132,4 @@ def home():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=11434)
