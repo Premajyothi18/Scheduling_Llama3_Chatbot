@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for
 import re
 
 # Load environment variables from .env file
@@ -84,7 +84,7 @@ def initialize_chatbot(schedule_content):
     return chain
 
 # Initialize chatbot
-#chain = initialize_chatbot()
+chain = initialize_chatbot("")
 
 def clean_output(response):
     # Example cleanup: remove excessive newlines, redundant words, or unwanted characters
