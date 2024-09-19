@@ -1,9 +1,10 @@
 import os
+import requests
 from dotenv import load_dotenv
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template
 import re
 
 # Load environment variables from .env file
@@ -11,14 +12,13 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
-    # Create chatbot prompt
+ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")  # Default URL
 
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
 # Set environment variables for langsmith tracking
-os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
+os.environ["LANGCHAIN_API_KEY"] = langchain_api_key
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 
 # Create Flask app
@@ -27,45 +27,7 @@ app = Flask(__name__)
 # WSGI application callable
 wsgi = app
 
-def load_file_content(file_path):
-    try:
-        with open(file_path, 'r') as file:
-            return file.read()
-    except Exception as e:
-        print(f"Error loading file: {str(e)}")
-        return ""
-def load_preloaded_data():
-    data = {}
-    base_path = r'C:\Users\PREMA\Desktop\LLama_Chatbot_Project\preloaded_schedules'
-
-    # Ensure the directory exists
-    if not os.path.exists(base_path):
-        os.makedirs(base_path)
-
-    for filename in os.listdir(base_path):
-        file_path = os.path.join(base_path, filename)
-        if os.path.isfile(file_path) and filename.endswith(".txt"):
-            data_name = filename.replace('.txt', '')
-            try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    data[data_name] = file.read()
-            except Exception as e:
-                print(f"Error reading file {filename}: {str(e)}")
-    return data
-    
-def load_uploaded_schedules(files):
-    uploaded_data = {}
-    for file in files:
-        try:
-            data_name = file.filename.replace('.txt', '')
-            uploaded_data[data_name] = file.read().decode('utf-8')
-        except Exception as e:
-            print(f"Error reading uploaded file {file.filename}: {str(e)}")
-    return uploaded_data
-
-# Define chatbot initialization
 def initialize_chatbot(schedule_content):
-    
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a professional assistant. When the user asks for a schedule, respond with clear, concise points. Ensure each day or task is on a new line."),
@@ -73,7 +35,7 @@ def initialize_chatbot(schedule_content):
         ]
     )
     
-    # Initialize OpenAI LLM and output parser
+    # Initialize OpenAI LLM and output parser with the correct API URL
     llm = Ollama(model="llama3")
     
     # Initialize output parser
@@ -82,9 +44,6 @@ def initialize_chatbot(schedule_content):
     # Create chain
     chain = prompt | llm | output_parser
     return chain
-
-# Initialize chatbot
-chain = initialize_chatbot("")
 
 def clean_output(response):
     # Example cleanup: remove excessive newlines, redundant words, or unwanted characters
@@ -103,6 +62,39 @@ def process_response(response):
     points = [point.strip() for point in points if point.strip()]
     return points
 
+def load_preloaded_data():
+    data = {}
+    base_path = r'C:\Users\PREMA\Desktop\LLama_Chatbot_Project\preloaded_schedules'
+
+    # Ensure the directory exists
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+
+    for filename in os.listdir(base_path):
+        file_path = os.path.join(base_path, filename)
+        if os.path.isfile(file_path) and filename.endswith(".txt"):
+            data_name = filename.replace('.txt', '')
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    data[data_name] = file.read()
+            except Exception as e:
+                print(f"Error reading file {filename}: {str(e)}")
+    return data
+
+# Example usage in a Flask route
+@app.route('/generate', methods=['POST'])
+def generate():
+    input_data = request.json
+    prompt = input_data.get('prompt', '')
+    try:
+        # Assuming you want to use the chain to generate responses
+        schedule_content = "Your schedule content here"  # Adjust as needed
+        chain = initialize_chatbot(schedule_content)
+        response = chain.invoke({'question': prompt, 'schedule_content': schedule_content})
+        return {"response": response}, 200
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 # Define route for home page
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -110,8 +102,12 @@ def home():
     output = []
     error_message = ""
     
-    # Load preloaded schedules and other data
-    preloaded_data = load_preloaded_data()
+    try:
+        # Load preloaded schedules and other data
+        preloaded_data = load_preloaded_data()
+    except Exception as e:
+        error_message = f"An error occurred while loading data: {str(e)}"
+        preloaded_data = {}
 
     if request.method == 'POST':
         input_text = request.form.get('input_text', '').strip()
@@ -126,7 +122,7 @@ def home():
                 response = chain.invoke({'question': input_text, 'schedule_content': schedule_content})
                 output = process_response(response)
             except Exception as e:
-                error_message = f"An error occurred: {str(e)}"
+                error_message = f"An error occurred while generating response: {str(e)}"
 
     return render_template('index.html', input_text=input_text, output=output, error_message=error_message)
 
