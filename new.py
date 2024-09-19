@@ -12,7 +12,7 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")  # Default URL
+ollama_api_url = os.getenv("OLLAMA_API_URL", "http://127.0.0.1:11434/api/generate")  # Default URL
 
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
