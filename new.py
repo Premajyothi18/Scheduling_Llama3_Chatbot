@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from flask import Flask, request, render_template
+from flask import Flask, request, jsonify, render_template
 import re
 
 # Load environment variables from .env file
