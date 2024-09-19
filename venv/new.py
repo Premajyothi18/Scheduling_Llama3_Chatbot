@@ -12,17 +12,17 @@ load_dotenv()
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434/api/generate")
+    # Create chatbot prompt
 
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
-# Set environment variables for Langchain tracking
+# Set environment variables for langsmith tracking
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 
 # Create Flask app
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = './uploads'  # Directory to store uploaded files
 
 # WSGI application callable
 wsgi = app
@@ -34,7 +34,6 @@ def load_file_content(file_path):
     except Exception as e:
         print(f"Error loading file: {str(e)}")
         return ""
-
 def load_preloaded_data():
     data = {}
     base_path = r'C:\Users\PREMA\Desktop\LLama_Chatbot_Project\preloaded_schedules'
@@ -53,7 +52,7 @@ def load_preloaded_data():
             except Exception as e:
                 print(f"Error reading file {filename}: {str(e)}")
     return data
-
+    
 def load_uploaded_schedules(files):
     uploaded_data = {}
     for file in files:
@@ -66,24 +65,25 @@ def load_uploaded_schedules(files):
 
 # Define chatbot initialization
 def initialize_chatbot(schedule_content):
+    
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a professional assistant. When the user asks for a schedule, respond with clear, concise points. Ensure each day or task is on a new line."),
             ("user", "Question: {question}\n\nRelevant Content:\n{schedule_content}")
         ]
     )
-
-    # Initialize Ollama LLM
+    
+    # Initialize OpenAI LLM and output parser
     llm = Ollama(model="llama3")
-
+    
     # Initialize output parser
     output_parser = StrOutputParser()
-
+    
     # Create chain
     chain = prompt | llm | output_parser
     return chain
 
-# Initialize chatbot with placeholder schedule content
+# Initialize chatbot
 chain = initialize_chatbot("")
 
 def clean_output(response):
@@ -112,26 +112,14 @@ def home():
     
     # Load preloaded schedules and other data
     preloaded_data = load_preloaded_data()
-    
+
     if request.method == 'POST':
         input_text = request.form.get('input_text', '').strip()
-
-        # Check for file uploads
-        files = request.files.getlist('schedule_files')
-
-        schedule_content = ""
-
-        # Use uploaded files if present, otherwise use preloaded data
-        if files:
-            uploaded_data = load_uploaded_schedules(files)
-            schedule_content = "\n".join(uploaded_data.values())
-        else:
-            selected_schedule = request.form.get('preloaded_schedule', '')
-            schedule_content = preloaded_data.get(selected_schedule, '')
-
-        if input_text and schedule_content:
+        
+        if input_text:
             try:
-                # Initialize chatbot with dynamic schedule content
+                # Initialize chatbot with some schedule content
+                schedule_content = "Your schedule content here"
                 chain = initialize_chatbot(schedule_content)
                 
                 # Generate response from the chatbot
@@ -139,10 +127,8 @@ def home():
                 output = process_response(response)
             except Exception as e:
                 error_message = f"An error occurred: {str(e)}"
-        else:
-            error_message = "Please provide a question and select/upload a schedule."
 
-    return render_template('index.html', input_text=input_text, output=output, error_message=error_message, preloaded_data=preloaded_data)
+    return render_template('index.html', input_text=input_text, output=output, error_message=error_message)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
