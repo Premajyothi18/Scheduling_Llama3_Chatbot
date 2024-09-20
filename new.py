@@ -12,7 +12,7 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "http://127.0.0.1:11434/api/generate")  # Default URL
+ollama_api_url = os.getenv("OLLAMA_API_URL", "https://ee74-2405-201-c00a-58d5-40a8-2fed-1bdb-6bbf.ngrok-free.app/api/generate")  # Default URL
 
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
@@ -83,17 +83,30 @@ def load_preloaded_data():
 
 # Example usage in a Flask route
 @app.route('/generate', methods=['POST'])
-def generate():
-    input_data = request.json
-    prompt = input_data.get('prompt', '')
+def generate_response():
+    prompt = request.json.get('prompt', '')  # Get prompt from request body
+    ollama_api_url = "https://ee74-2405-201-c00a-58d5-40a8-2fed-1bdb-6bbf.ngrok-free.app/api/generate"
+    
+    payload = {
+        "model": "llama3",  # Use the correct model name supported by Ollama
+        "prompt": prompt
+    }
+    
+    print(f"Payload: {payload}")  # Log the payload for debugging
+    
+    headers = {
+    "Authorization": "Bearer LA-e776a124cfd84e8f9bf66391973c29ee1169e88584694952a38806c7b3c2268d",  # Replace with your actual API key
+    "Content-Type": "application/json"
+}
+    
     try:
-        # Assuming you want to use the chain to generate responses
-        schedule_content = "Your schedule content here"  # Adjust as needed
-        chain = initialize_chatbot(schedule_content)
-        response = chain.invoke({'question': prompt, 'schedule_content': schedule_content})
-        return {"response": response}, 200
-    except Exception as e:
-        return {"error": str(e)}, 500
+        response = requests.post(ollama_api_url, json=payload, headers=headers)
+        response.raise_for_status()  # Raise an error for bad responses (4xx or 5xx)
+        
+        return response.json()  # Parse JSON response
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {str(e)}")  # Log the error
+        return {"error": "Failed to generate response", "details": str(e)}, 500  # Return error with details
 
 # Define route for home page
 @app.route('/', methods=['GET', 'POST'])
