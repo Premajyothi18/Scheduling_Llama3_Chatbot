@@ -84,29 +84,28 @@ def load_preloaded_data():
 @app.route('/generate', methods=['POST'])
 def generate_response():
     prompt = request.json.get('prompt', '')  # Get prompt from request body
-    ollama_api_url = "https://ee74-2405-201-c00a-58d5-40a8-2fed-1bdb-6bbf.ngrok-free.app/api/generate"
-    
+    ollama_api_url = "http://127.0.0.1:11434/api/generate"  # Local Ollama URL
+
     payload = {
         "model": "llama3",  # Use the correct model name supported by Ollama
         "prompt": prompt
     }
-    
-    print(f"Payload: {payload}")  # Log the payload for debugging
-    
+
     headers = {
-    
-    "Content-Type": "application/json"
-}
-    
+        "Content-Type": "application/json"
+    }
+
     try:
         response = requests.post(ollama_api_url, json=payload, headers=headers)
         response.raise_for_status()  # Raise an error for bad responses (4xx or 5xx)
         
-        return response.json()  # Parse JSON response
+        result = response.json()
+        print(f"Ollama API Response: {result}")  # Log the API response for debugging
+        return jsonify(result)  # Send the response back to the client
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {str(e)}")  # Log the error
         return {"error": "Failed to generate response", "details": str(e)}, 500  # Return error with details
-
+    
 # Define route for home page
 @app.route('/', methods=['GET', 'POST'])
 def home():
