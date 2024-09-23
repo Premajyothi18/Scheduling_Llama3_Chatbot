@@ -12,8 +12,7 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "https://ee74-2405-201-c00a-58d5-40a8-2fed-1bdb-6bbf.ngrok-free.app/api/generate")  # Default URL
-
+ollama_api_url = os.getenv("OLLAMA_API_URL")
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
@@ -95,7 +94,7 @@ def generate_response():
     print(f"Payload: {payload}")  # Log the payload for debugging
     
     headers = {
-    #"Authorization": "Bearer LA-e776a124cfd84e8f9bf66391973c29ee1169e88584694952a38806c7b3c2268d",  # Replace with your actual API key
+    
     "Content-Type": "application/json"
 }
     
