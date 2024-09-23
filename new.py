@@ -95,7 +95,7 @@ def generate_response():
     print(f"Payload: {payload}")  # Log the payload for debugging
     
     headers = {
-    "Authorization": "Bearer LA-e776a124cfd84e8f9bf66391973c29ee1169e88584694952a38806c7b3c2268d",  # Replace with your actual API key
+    #"Authorization": "Bearer LA-e776a124cfd84e8f9bf66391973c29ee1169e88584694952a38806c7b3c2268d",  # Replace with your actual API key
     "Content-Type": "application/json"
 }
     
