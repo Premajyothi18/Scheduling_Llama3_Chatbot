@@ -12,7 +12,7 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL")
+ollama_api_url = os.getenv("OLLAMA_API_URL", "https://scheduling-chatbot.onrender.com")
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
@@ -83,9 +83,9 @@ def load_preloaded_data():
 # Example usage in a Flask route
 @app.route('/generate', methods=['POST'])
 def generate_response():
-    prompt = request.json.get('prompt', '')  # Get prompt from request body
-    ollama_api_url = "http://127.0.0.1:11434/api/generate"  # Local Ollama URL
-
+    prompt = request.json.get('prompt', '')
+    
+    # Use the ollama_api_url environment variable from Render
     payload = {
         "model": "llama3",  # Use the correct model name supported by Ollama
         "prompt": prompt
@@ -96,7 +96,8 @@ def generate_response():
     }
 
     try:
-        response = requests.post(ollama_api_url, json=payload, headers=headers)
+        # Use the ollama_api_url environment variable
+        response = requests.post(f"{ollama_api_url}/api/generate", json=payload, headers=headers)
         response.raise_for_status()  # Raise an error for bad responses (4xx or 5xx)
         
         result = response.json()
@@ -105,7 +106,7 @@ def generate_response():
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {str(e)}")  # Log the error
         return {"error": "Failed to generate response", "details": str(e)}, 500  # Return error with details
-    
+
 # Define route for home page
 @app.route('/', methods=['GET', 'POST'])
 def home():
