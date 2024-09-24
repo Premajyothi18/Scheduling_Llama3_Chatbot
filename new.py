@@ -12,13 +12,16 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "https://scheduling-chatbot.onrender.com")
+ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
 # Set environment variables for langsmith tracking
 os.environ["LANGCHAIN_API_KEY"] = langchain_api_key
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
+
+# Set the environment variable if required by the Ollama class
+os.environ["OLLAMA_API_URL"] = ollama_api_url
 
 # Create Flask app
 app = Flask(__name__)
@@ -35,7 +38,7 @@ def initialize_chatbot(schedule_content):
     )
 
     # Initialize OpenAI LLM with the correct API URL
-    llm = Ollama(model="llama3", api_url=ollama_api_url)  # Ensure this matches how your Ollama is set up
+    llm = Ollama(model="llama3")
     
     # Initialize output parser
     output_parser = StrOutputParser()
@@ -84,7 +87,6 @@ def load_preloaded_data():
 def generate_response():
     prompt = request.json.get('prompt', '')
     
-    # Use the ollama_api_url environment variable from Render
     payload = {
         "model": "llama3",  # Ensure the model name matches what your API expects
         "prompt": prompt
@@ -95,7 +97,7 @@ def generate_response():
     }
 
     try:
-        # Use the ollama_api_url environment variable
+        # Use the dynamically loaded ollama_api_url from environment
         response = requests.post(f"{ollama_api_url}/api/generate", json=payload, headers=headers)
         response.raise_for_status()  # Raise an error for bad responses (4xx or 5xx)
         
