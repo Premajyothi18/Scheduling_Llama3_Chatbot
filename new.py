@@ -33,9 +33,9 @@ def initialize_chatbot(schedule_content):
             ("user", "Question: {question}\n\nRelevant Content:\n{schedule_content}")
         ]
     )
-    
-    # Initialize OpenAI LLM and output parser with the correct API URL
-    llm = Ollama(model="llama3")
+
+    # Initialize OpenAI LLM with the correct API URL
+    llm = Ollama(model="llama3", api_url=ollama_api_url)  # Ensure this matches how your Ollama is set up
     
     # Initialize output parser
     output_parser = StrOutputParser()
@@ -43,7 +43,6 @@ def initialize_chatbot(schedule_content):
     # Create chain
     chain = prompt | llm | output_parser
     return chain
-
 def clean_output(response):
     # Example cleanup: remove excessive newlines, redundant words, or unwanted characters
     response = response.replace('\n\n', '\n')  # Remove double newlines
@@ -87,7 +86,7 @@ def generate_response():
     
     # Use the ollama_api_url environment variable from Render
     payload = {
-        "model": "llama3",  # Use the correct model name supported by Ollama
+        "model": "llama3",  # Ensure the model name matches what your API expects
         "prompt": prompt
     }
 
@@ -106,7 +105,7 @@ def generate_response():
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {str(e)}")  # Log the error
         return {"error": "Failed to generate response", "details": str(e)}, 500  # Return error with details
-
+    
 # Define route for home page
 @app.route('/', methods=['GET', 'POST'])
 def home():
