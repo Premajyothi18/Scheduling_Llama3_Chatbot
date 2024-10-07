@@ -3,4 +3,9 @@ Mathematics Schedule
 - Textbook:* "Advanced Mathematics"
 - Chapters:* 12
 - Exercises per Chapter:* 10-15
+<<<<<<< HEAD
 - School Year:* 36 weeks (excluding holidays)
+=======
+- School Year:* 36 weeks (excluding holidays)
+
+>>>>>>> df43131343d96e7878116c241e77e3f2a349022d
