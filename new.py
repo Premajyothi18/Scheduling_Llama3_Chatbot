@@ -22,10 +22,6 @@ os.environ["LANGCHAIN_TRACING_V2"] = "true"
 
 # Set the environment variable if required by the Ollama class
 os.environ["OLLAMA_API_URL"] = ollama_api_url
-<<<<<<< HEAD
-=======
-
->>>>>>> df43131343d96e7878116c241e77e3f2a349022d
 # Create Flask app
 app = Flask(__name__)
 
