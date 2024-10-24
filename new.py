@@ -12,7 +12,7 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
+ollama_api_url = os.getenv("OLLAMA_API_URL", "https://cirriculum-chatbot.onrender.com")
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
@@ -82,7 +82,7 @@ def load_preloaded_data():
     return data
 
 # Example usage in a Flask route
-@app.route('/generate', methods=['POST'])
+@app.route('/generate', methods=['POST', 'GET'])
 def generate_response():
     prompt = request.json.get('prompt', '')
     
@@ -140,4 +140,4 @@ def home():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
