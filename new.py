@@ -12,7 +12,7 @@ load_dotenv()
 
 # Get the API key and handle missing environment variables
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-ollama_api_url = os.getenv("OLLAMA_API_URL", "https://cirriculum-chatbot.onrender.com")
+ollama_api_url = os.getenv("OLLAMA_API_URL")
 if not langchain_api_key:
     raise ValueError("LANGCHAIN_API_KEY is not set in the environment variables.")
 
@@ -139,5 +139,5 @@ def home():
     return render_template('index.html', input_text=input_text, output=output, error_message=error_message)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 1000))
+    port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
